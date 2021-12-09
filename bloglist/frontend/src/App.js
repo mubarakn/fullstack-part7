@@ -3,10 +3,10 @@ import Blog from './components/Blog'
 import BlogFrom from './components/BlogForm'
 import LoginForm from './components/LoginForm'
 import blogService from './services/blogs'
-import loginService from './services/login'
 import { useSelector, useDispatch } from 'react-redux'
 import { initializeBlogs, newBlog, likeBlog, removeBlog } from './reducers/blogReducer'
 import { setNotification } from './reducers/notificationReducer'
+import { login } from './reducers/loginReducer'
 
 import('./app.css')
 
@@ -14,17 +14,15 @@ const App = () => {
     const dispatch = useDispatch()
 
     const [user, setUser] = useState(null)
-    const [error, setError] = useState('')
     const blogs = useSelector(state => state.blogs)
     const notification = useSelector(state => state.notification)
+    const loggedInUser = useSelector(state => state.login)
 
     useEffect(() => {
-        const loggedUserJSON = localStorage.getItem('user')
-        if (loggedUserJSON) {
-            const user = JSON.parse(loggedUserJSON)
-            setUser(user)
+        if (loggedInUser) {
+            setUser(loggedInUser)
         }
-    }, [])
+    }, [loggedInUser])
 
     useEffect(() => {
         if (user) {
@@ -34,23 +32,12 @@ const App = () => {
     }, [user])
 
     const handleLogin = async ({ username, password }) => {
-        loginService
-            .login({ username, password })
-            .then(user => {
-                localStorage.setItem('user', JSON.stringify(user))
-                setUser(user)
-            })
-            .catch(error => {
-                if (error.response.status === 401) {
-                    setError('Invalid username or password')
-                    setTimeout(() => { setError('') }, 5000)
-                }
-            })
+        dispatch(login({ username, password }))
     }
 
     const handleCreate = async blog => {
         dispatch(newBlog(blog))
-        setNotification(`a new blog ${blog.title} by ${blog.author} added`, 5)
+        dispatch(setNotification(`a new blog ${blog.title} by ${blog.author} added`, 5))
     }
 
     const handleLike = async blog => {
@@ -79,7 +66,6 @@ const App = () => {
     return (
         <div>
             {notification && <div className="info">{notification}</div>}
-            {error && <div className="error">{error}</div>}
             {!user && <LoginForm login={handleLogin} />}
             {user && <BlogFrom createBlog={handleCreate} />}
             {user && blogList()}

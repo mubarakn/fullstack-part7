@@ -1,6 +1,7 @@
 const createNotification = notification => ({ type: 'SET_NOTIFICATION', data: notification })
 
 export const setNotification = (notification, seconds) => {
+    console.log('setNotification', notification, seconds)
     return async dispatch => {
         dispatch(createNotification(notification))
         setTimeout(() => {
