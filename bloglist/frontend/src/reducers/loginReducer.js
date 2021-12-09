@@ -15,6 +15,13 @@ export const login = credentials => {
     }
 }
 
+export const logout = () => {
+    return async dispatch => {
+        localStorage.removeItem('user')
+        dispatch({ type: 'LOGOUT' })
+    }
+}
+
 const loginReducer = (
     state = localStorage.getItem('user')
         ? JSON.parse(localStorage.getItem('user'))
@@ -25,6 +32,8 @@ const loginReducer = (
     case 'LOGIN':
         localStorage.setItem('user', JSON.stringify(action.data))
         return action.data
+    case 'LOGOUT':
+        return null
     default:
         return state
     }

@@ -1,11 +1,21 @@
 import React, { useState, useRef } from 'react'
 import Togglable from './Togglable'
+import { newBlog } from '../reducers/blogReducer'
+import { setNotification } from '../reducers/notificationReducer'
+import { useDispatch } from 'react-redux'
 
-const BlogFrom = ({ createBlog }) => {
+const BlogFrom = () => {
+    const dispatch = useDispatch()
+
     const [title, setTitle] = useState('')
     const [author, setAuthor] = useState('')
     const [url, setUrl] = useState('')
     const formRef = useRef()
+
+    const createBlog = blog => {
+        dispatch(newBlog(blog))
+        dispatch(setNotification(`a new blog ${blog.title} by ${blog.author} added`, 5))
+    }
 
     const handleSubmit = event => {
         event.preventDefault()

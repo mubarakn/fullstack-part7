@@ -1,75 +1,60 @@
-import React, { useState, useEffect } from 'react'
-import Blog from './components/Blog'
+import React, { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { BrowserRouter as Router, Switch, Route, Link,  } from 'react-router-dom'
 import BlogFrom from './components/BlogForm'
 import LoginForm from './components/LoginForm'
 import blogService from './services/blogs'
-import { useSelector, useDispatch } from 'react-redux'
-import { initializeBlogs, newBlog, likeBlog, removeBlog } from './reducers/blogReducer'
-import { setNotification } from './reducers/notificationReducer'
-import { login } from './reducers/loginReducer'
+import userService from './services/users'
+import { initializeBlogs } from './reducers/blogReducer'
+import { initializeUsers } from './reducers/userReducer'
+import { logout } from './reducers/loginReducer'
+import BlogList from './components/BlogList'
+import BlogView from './components/BlogView'
+import Users from './components/Users'
+import User from './components/User'
 
 import('./app.css')
 
 const App = () => {
     const dispatch = useDispatch()
-
-    const [user, setUser] = useState(null)
-    const blogs = useSelector(state => state.blogs)
     const notification = useSelector(state => state.notification)
-    const loggedInUser = useSelector(state => state.login)
-
-    useEffect(() => {
-        if (loggedInUser) {
-            setUser(loggedInUser)
-        }
-    }, [loggedInUser])
+    const user = useSelector(state => state.login)
 
     useEffect(() => {
         if (user) {
             blogService.setToken(user.token)
+            userService.setToken(user.token)
             dispatch(initializeBlogs())
+            dispatch(initializeUsers())
         }
     }, [user])
 
-    const handleLogin = async ({ username, password }) => {
-        dispatch(login({ username, password }))
-    }
-
-    const handleCreate = async blog => {
-        dispatch(newBlog(blog))
-        dispatch(setNotification(`a new blog ${blog.title} by ${blog.author} added`, 5))
-    }
-
-    const handleLike = async blog => {
-        dispatch(likeBlog(blog))
-    }
-
-    const handleRemoveBlog = async blog => {
-        if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
-            dispatch(removeBlog(blog.id))
-        }
-    }
-
-    const blogList = () => {
-        return (
-            <>
-                <h2>blogs</h2>
-                <div>{user.name} logged in <button onClick={() => {localStorage.clear(); setUser(null)}}>logout</button></div>
-                {blogs.sort((a, b) => b.likes - a.likes ).map(blog => {
-                    return (<Blog key={blog.id} blog={blog} like={handleLike} removeBlog={() => handleRemoveBlog(blog)} />)
-                }
-                )}
-            </>
-        )
-    }
-
     return (
-        <div>
+        <Router>
+            <div style={{ display: 'flex' }}>
+                <Link style={{ padding: 8 }} to="/">blogs</Link>
+                <Link style={{ padding: 8 }} to="/users">users</Link>
+            </div>
             {notification && <div className="info">{notification}</div>}
-            {!user && <LoginForm login={handleLogin} />}
-            {user && <BlogFrom createBlog={handleCreate} />}
-            {user && blogList()}
-        </div>
+            {!user && <LoginForm />}
+            {user && <BlogFrom />}
+            <h2>blogs</h2>
+            <div>{user.name} logged in <button onClick={() => dispatch(logout())}>logout</button></div>
+            <Switch>
+                <Route exact path="/">
+                    {user && <BlogList />}
+                </Route>
+                <Route exact path="/users">
+                    <Users />
+                </Route>
+                <Route exact path="/users/:id">
+                    <User />
+                </Route>
+                <Route exact path="/blogs/:id">
+                    <BlogView />
+                </Route>
+            </Switch>
+        </Router>
     )
 }
 

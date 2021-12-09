@@ -1,14 +1,17 @@
 import React, { useState } from 'react'
 import Togglable from './Togglable'
+import { useDispatch } from 'react-redux'
+import { login } from '../reducers/loginReducer'
 
-const LoginForm = ({ login }) => {
+const LoginForm = () => {
+    const dispatch = useDispatch()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
     const handleSubmit = event => {
         event.preventDefault()
         if (typeof login === 'function') {
-            login({ username, password })
+            dispatch(login({ username, password }))
         }
     }
 
